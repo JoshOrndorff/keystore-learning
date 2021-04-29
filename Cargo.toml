@@ -1,0 +1,15 @@
+[package]
+name = "keystore-learing"
+version = "0.1.0"
+authors = ["Joshy Orndorff <admin@joshyorndorff.com>"]
+edition = "2018"
+description = "A play environment to learn about Substrate's keystore"
+
+[dependencies]
+sc-keystore = "3.0.0"
+sp-keystore = "0.9.0"
+sp-application-crypto = "3.0.0"
+
+# Thought I needed this for KeyTypeId etc, but it is re-exported from sp-app-crypto
+# Guess I do need it at least as long as I'm using ed25519 directly. Maybe that gets better once I use app_crypto
+sp-core = "3.0.0"
