@@ -13,3 +13,6 @@ sp-application-crypto = "3.0.0"
 # Thought I needed this for KeyTypeId etc, but it is re-exported from sp-app-crypto
 # Guess I do need it at least as long as I'm using ed25519 directly. Maybe that gets better once I use app_crypto
 sp-core = "3.0.0"
+
+# Had to bring this in to use app_crypto! macro
+parity-scale-codec = "2.0.0"
