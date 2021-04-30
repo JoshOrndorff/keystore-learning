@@ -32,6 +32,8 @@ fn main() {
     
     // This line is pretty much copied from Aura.
     let public_type_pair = structured_public.to_public_crypto_pair();
+    println!("{:?}", public_type_pair.0); // CryptoTypeId([115, 114, 50, 53]) (sr25)
+    println!("{:?}", public_type_pair.1); // Same key as above
 
     // Put that key in the keystore
     // You have to provide the phrase so it can derive the private key and do signing
@@ -44,6 +46,14 @@ fn main() {
     // TODO figure out why the key isn't found here.
     let found_key = keystore.has_keys(&[(raw_public_key.to_vec(), COMMS)]);
     println!("Does the keystore have the key? {}", found_key);
+
+    // Let's see what all keys we do have for type COMMS
+    // This doesn't return any keys (an empty vec)
+    // TODO figure out why the key isn't inserted
+    let all_keys = keystore.keys(COMMS);
+    for key in all_keys {
+        println!("Have key {:?}", key);
+    }
 
     // Sign a message with my new key
     //TODO can the keystore even sign when it doesn't know the crypto type?
