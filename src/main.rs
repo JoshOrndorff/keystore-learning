@@ -21,7 +21,7 @@ fn main() {
 
     // Generate a key.
     // Hypothesis: when using app_crypto you can't rely on the keystore to generate for you.
-    // TODO figure out where Aura generates them. (In the runtime API I guess)
+    // Aura generates these in the runtime by calling the `generate` method on the thing defined by `imple_opaque_keys!`
     let (key_pair, phrase, raw_public_key) = Pair::generate_with_phrase(None);
 
     println!("Raw        public key: {:?}", raw_public_key);
@@ -41,6 +41,7 @@ fn main() {
 
     // Let's see whether the keystore has the key now that we've inserted it.
     // It doesn't have the key, so that explains why it couldn't sign.
+    // TODO figure out why the key isn't found here.
     let found_key = keystore.has_keys(&[(raw_public_key.to_vec(), COMMS)]);
     println!("Does the keystore have the key? {}", found_key);
 
