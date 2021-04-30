@@ -16,8 +16,9 @@ mod app_sr25519 {
 use app_sr25519::{Signature, Pair, Public};
 
 fn main() {
+    let keystore_path = "/tmp/joshy-keystore";
     // Create a place to store my keys.
-    let keystore = LocalKeystore::in_memory();
+    let keystore = LocalKeystore::open(keystore_path, None).expect("failed to create local fs keystore");
 
     // Generate a key.
     // Hypothesis: when using app_crypto you can't rely on the keystore to generate for you.
@@ -104,5 +105,5 @@ fn main() {
 // Create some key types for my three pretend use cases
 // https://github.com/paritytech/substrate/blob/70ef0afc86cdef0cba09336acffb08bff08540aa/primitives/core/src/crypto.rs#L1156-L1182
 pub const COMMS: KeyTypeId = KeyTypeId(*b"comm");
-pub const POLKADOT: KeyTypeId = KeyTypeId(*b"pdot");
-pub const PHYSICAL_LOCKS: KeyTypeId = KeyTypeId(*b"loks");
+// pub const POLKADOT: KeyTypeId = KeyTypeId(*b"pdot");
+// pub const PHYSICAL_LOCKS: KeyTypeId = KeyTypeId(*b"loks");
