@@ -30,12 +30,12 @@ fn main() {
     // Hypothesis: when using app_crypto you can't rely on the keystore to generate for you.
     // TODO Based on Basti's comments in element, I think you can generate in the keystore. But how?
     // Aura generates these in the runtime by calling the `generate` method on the thing defined by `imple_opaque_keys!`
-    let (key_pair, phrase, raw_public_key) = Pair::generate_with_phrase(None);
+    let (key_pair, phrase, seed) = Pair::generate_with_phrase(None);
 
     println!("My phrase is: {:?}", phrase);
-    println!("Raw        public key: {:?}", raw_public_key);
+    println!("Raw seed: {:?}", seed);
 
-    let structured_public = Public::from_slice(&raw_public_key);
+    let structured_public = key_pair.public();
     println!("Structured public key: {:?}", structured_public.as_slice());
     println!("Structured public key: {:?}", structured_public);
     
@@ -49,10 +49,10 @@ fn main() {
     // You have to provide the phrase so it can derive the private key and do signing
     // You have to put the raw public key because the keystore doesn't know the internals of the cryptography.
     // Aura uses insert_unknown to insert keys when passed in via RPC https://github.com/paritytech/substrate/blob/master/client/rpc/src/author/mod.rs#L97-L109
-    keystore.insert_unknown(COMMS, &phrase, &raw_public_key).map_err(|e|panic!("Failed to insert key: {:?}", e)).unwrap();
+    keystore.insert_unknown(COMMS, &phrase, structured_public.as_slice()).map_err(|e|panic!("Failed to insert key: {:?}", e)).unwrap();
 
     // Let's see whether the keystore has the key now that we've inserted it.
-    let found_key = keystore.has_keys(&[(raw_public_key.to_vec(), COMMS)]);
+    let found_key = keystore.has_keys(&[(structured_public.to_raw_vec(), COMMS)]);
     println!("Does the keystore have the key? {}", found_key);
 
     // Let's see what all keys we do have for type COMMS
