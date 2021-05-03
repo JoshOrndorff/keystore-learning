@@ -138,5 +138,7 @@ fn main() {
 
     // Verify that signature.
     assert!(CustomPair::verify(&signature, &MESSAGE, &key_pair.public()));
+
+    // Exercise: Switch to the async keystore.
 }
 
