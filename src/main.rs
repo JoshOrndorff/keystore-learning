@@ -14,23 +14,32 @@ mod app_sr25519 {
 }
 
 use app_sr25519::{Signature, Pair, Public};
+use sp_core::crypto::SecretString;
 
 fn main() {
     let keystore_path = "/tmp/joshy-keystore";
+    
+    // Here is a password we can use, but I don't think the password is the problem. We never even have to supply the password later.
+    // I get the same InvalidPassword error later regardless whether I use a password.
+    let _password = Some(SecretString::new("hello".into()));
+
     // Create a place to store my keys.
     let keystore = LocalKeystore::open(keystore_path, None).expect("failed to create local fs keystore");
 
     // Generate a key.
     // Hypothesis: when using app_crypto you can't rely on the keystore to generate for you.
+    // TODO Based on Basti's comments in element, I think you can generate in the keystore. But how?
     // Aura generates these in the runtime by calling the `generate` method on the thing defined by `imple_opaque_keys!`
     let (key_pair, phrase, raw_public_key) = Pair::generate_with_phrase(None);
 
+    println!("My phrase is: {:?}", phrase);
     println!("Raw        public key: {:?}", raw_public_key);
 
     let structured_public = Public::from_slice(&raw_public_key);
     println!("Structured public key: {:?}", structured_public.as_slice());
     println!("Structured public key: {:?}", structured_public);
     
+    // Create a CryptoTypePublicPair
     // This line is pretty much copied from Aura.
     let public_type_pair = structured_public.to_public_crypto_pair();
     println!("{:?}", public_type_pair.0); // CryptoTypeId([115, 114, 50, 53]) (sr25)
@@ -43,23 +52,29 @@ fn main() {
     keystore.insert_unknown(COMMS, &phrase, &raw_public_key).map_err(|e|panic!("Failed to insert key: {:?}", e)).unwrap();
 
     // Let's see whether the keystore has the key now that we've inserted it.
-    // It doesn't have the key, so that explains why it couldn't sign.
-    // TODO figure out why the key isn't found here.
     let found_key = keystore.has_keys(&[(raw_public_key.to_vec(), COMMS)]);
     println!("Does the keystore have the key? {}", found_key);
 
     // Let's see what all keys we do have for type COMMS
     // This doesn't return any keys (an empty vec)
-    // TODO figure out why the key isn't inserted
-    let all_keys = keystore.keys(COMMS);
+    let all_keys = keystore.keys(COMMS).expect("keystore should return the keys it has");
     for key in all_keys {
         println!("Have key {:?}", key);
     }
 
     // Sign a message with my new key
     //TODO can the keystore even sign when it doesn't know the crypto type?
-    // Am I supposed to get the keys themselves out to sign with? Doesn't seem like the keystore should be giving the keys out.
+    // I guess it should. Why else would I bother to put my keys there?
     let message = "send the money to Alice".as_bytes();
+
+    // This signing fails. It prints the line:
+    // thread 'main' panicked at 'failed to generate a signature: ValidationError("Invalid password")'
+    //
+    // I've traced the call stack. to https://github.com/paritytech/substrate/blob/master/client/keystore/src/local.rs#L187-L193
+    // It matches the correct crypto type (sr25519) and fetches the correct public key bytes
+    // Then I traced it to https://github.com/paritytech/substrate/blob/master/client/keystore/src/local.rs#L444
+    // It fetches the correct seed phrase, but then generates the wrong pair. The public keys don't match, so it returns the
+    // InvalidPassword error which is propogated all the way back to this `main()` function.
     let signature_bytes = keystore
         .sign_with(
             COMMS,
